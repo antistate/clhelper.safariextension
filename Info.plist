@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Author</key>
+	<string>Ziink</string>
+	<key>Builder Version</key>
+	<string>7536.10.3</string>
+	<key>CFBundleDisplayName</key>
+	<string>Craigslist Helper2</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.ziink.safari.clhelper</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.0.0.46</string>
+	<key>CFBundleVersion</key>
+	<string>0.0.0.46</string>
+	<key>Chrome</key>
+	<dict>
+		<key>Database Quota</key>
+		<real>104857600</real>
+		<key>Global Page</key>
+		<string>background.html</string>
+		<key>Toolbar Items</key>
+		<array>
+			<dict>
+				<key>Identifier</key>
+				<string>tbbClHelper</string>
+				<key>Image</key>
+				<string>images/clh_safari.png</string>
+				<key>Label</key>
+				<string>Craigslist Helper</string>
+				<key>Palette Label</key>
+				<string>Craigslist Helper</string>
+			</dict>
+		</array>
+	</dict>
+	<key>Content</key>
+	<dict>
+		<key>Scripts</key>
+		<dict>
+			<key>End</key>
+			<array>
+				<string>jquery/jquery-1.5.min.js</string>
+				<string>jquery/jquery-ui-1.8.9.custom.min.js</string>
+				<string>jquery/jquery.hoverIntent.min.js</string>
+				<string>jquery/jquery.jeditable.min.js</string>
+				<string>jquery/jquery.appear-1.1.1.js</string>
+				<string>cl_helper_utils.js</string>
+				<string>forum.js</string>
+				<string>cl_helper.js</string>
+			</array>
+		</dict>
+		<key>Stylesheets</key>
+		<array>
+			<string>cl_helper.css</string>
+			<string>jquery/css/ui-lightness/jquery-ui-1.8.9.custom.css</string>
+		</array>
+		<key>Whitelist</key>
+		<array>
+			<string>http://*.craigslist.org/*</string>
+			<string>http://*.craigslist.ca/*</string>
+			<string>http://*.craigslist.hk/*</string>
+			<string>http://*.craigslist.co.uk/*</string>
+		</array>
+	</dict>
+	<key>Description</key>
+	<string>Image previews, ad previews, notes, bookmarks and more</string>
+	<key>ExtensionInfoDictionaryVersion</key>
+	<string>1.0</string>
+	<key>Permissions</key>
+	<dict>
+		<key>Website Access</key>
+		<dict>
+			<key>Include Secure Pages</key>
+			<true/>
+			<key>Level</key>
+			<string>All</string>
+		</dict>
+	</dict>
+	<key>Update Manifest URL</key>
+	<string>https://sites.google.com/site/ziinkext/documents/clhelper.plist?attredirects=0&amp;d=1</string>
+	<key>Website</key>
+	<string>https://sites.google.com/site/ziinkext/clh</string>
+</dict>
+</plist>

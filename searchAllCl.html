@@ -1,0 +1,86 @@
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="cl_helper.css" />
+	<script type="text/javascript" src="jquery/jquery-1.5.min.js"></script>
+	<script type="text/javascript" src="jquery/jquery.hoverIntent.min.js"></script>
+	<script type="text/javascript" src="jquery/jquery.jeditable.min.js"></script>
+	<script type="text/javascript" src="cl_helper_utils.js"></script>
+</head>
+<body class="toc" style="cursor: wait;" >
+	<div id="content" style="background-color: white; border-radius: 10px; -moz-border-radius: 10px; margin: 0px 10px 10px 10px; padding: 0 20px">
+	
+		<h2><img src="images/peace_48.png" style="position: relative; top: 10px;">  Search all Craigslist ads.</h2>
+		This feature is experimental and might not work very well.<br><br> 
+
+		search for: 		
+		<input id="query" size="30" value=""> in:
+		<select id="catAbb">
+			<option value="ccc">all community
+			<option value="eee">all event
+			<option value="sss">all for sale / wanted
+			<option disabled value="">--
+			<option value="atq"> antiques
+			<option value="app"> appliances
+			<option value="art"> arts &amp; crafts
+			<option value="pts"> auto parts
+			<option value="bab"> baby &amp; kid stuff
+			<option value="bar"> barter
+			<option value="bik"> bicycles
+			<option value="boa"> boats
+			<option value="bks"> books
+			<option value="bfs"> business
+			<option value="ctd"> cars &amp; trucks - by dealer
+			<option value="cto"> cars &amp; trucks - by owner
+			<option value="cta"> cars+trucks
+			<option value="emd"> cds / dvds / vhs
+			<option value="mob"> cell phones
+			<option value="clo"> clothing
+			<option value="clt"> collectibles
+			<option value="sys"> computers &amp; tech
+			<option value="ele"> electronics
+			<option value="grd"> farm &amp; garden
+			<option value="zip"> free stuff
+			<option value="fua"> furniture
+			<option value="fud"> furniture - by dealer
+			<option value="fuo"> furniture - by owner
+			<option value="gms"> garage sales
+			<option value="for"> general
+			<option value="hab"> health and beauty
+			<option value="hsh"> household
+			<option value="wan"> items wanted
+			<option value="jwl"> jewelry
+			<option value="mat"> materials
+			<option value="mca"> motorcycles
+			<option value="mcd"> motorcycles/scooters - by dealer
+			<option value="mcy"> motorcycles/scooters - by owner
+			<option value="msg"> musical instruments
+			<option value="pho"> photo/video
+			<option value="rvs"> recreational vehicles
+			<option value="spo"> sporting goods
+			<option value="tia"> tickets
+			<option value="tid"> tickets - by dealer
+			<option value="tix"> tickets - by owner
+			<option value="tls"> tools
+			<option value="tag"> toys &amp; games
+			<option value="vgm"> video gaming
+			<option disabled value="">--
+			<option value="ggg">all gigs
+			<option value="hhh">all housing
+			<option value="jjj">all jobs
+			<option value="ppp">all personals
+			<option value="res">all resume
+			<option value="bbb">all services offered
+		</select>
+		<button id="searchButton">Search</button>
+		<span id="statusMsg"></span>
+		
+		<hr>
+		<blockquote id="dummy_for_smartmode"></blockquote>
+	
+		<blockquote id="listings">Searching, please wait ...</blockquote>
+	</div>
+	
+	<script type="text/javascript" src="searchAllCl.js"></script>
+	<!--<script type="text/javascript" src="gan.js"></script>-->
+</body>
+</html>

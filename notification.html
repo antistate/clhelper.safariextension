@@ -1,0 +1,57 @@
+<html><head>
+	<script src="jquery/jquery-1.5.min.js"></script>
+<style>
+	img.logo {margin-right: 20px; clear: both; float: left;}
+	a {margin-bottom: 20px;}
+	a:hover {background-color: #ccffcc;}
+</style>
+
+<script type="text/javascript">
+
+	var options = JSON.parse(localStorage['options']);
+	var showFor = options.hideNotificationTime;
+	// chrome.extension.sendRequest({'op': 'test', 'msg': 'after main timeout, showfor=' + showFor + " options=" + options});
+
+
+	if( showFor > 0 ){
+		window.setTimeout("chrome.extension.sendRequest({'op': 'closeNotification'});", showFor * 60 * 1000 );
+	}
+
+
+	var count = 0;
+	function displayAlerts(){
+		chrome.extension.sendRequest({'op': 'getAlerts'}, function(alerts){
+			//		$(document.body).append('<div style="clear: both; height: 20px"> </div><img class="logo" src="images/peace_48.png" alt="CL Helper" style="float:left; clear:left;">This is it');
+			for(var i=0; i<alerts.length; i++){
+				if(document.body.innerHTML.indexOf(alerts[i].url.replace(/&/g, '&amp;')) < 0){
+					count++;
+//					$(document.body).append('<a href="'+ alerts[i].url +'" target="_blank">' + alerts[i].title + '</a><br>');
+					$(document.body).append('<span style="margin-left: 40px"><a onclick="checkSingle(this); return true;" href="'+ alerts[i].url +'" target="_blank">' + alerts[i].title + '</a><br></span>');
+				}
+			}
+		});
+	}
+
+	function checkSingle(el){
+//		chrome.tabs.create({url: this});
+		$(el.parentNode).hide();
+		if(--count <= 0 )
+		{
+			chrome.extension.sendRequest({'op': 'closeNotification'});
+		}
+	}
+
+	displayAlerts();
+	setInterval(function(){displayAlerts()}, 60000);
+</script>
+
+</head>
+<body>
+	<img class="logo" src="images/peace_48.png" alt="CL Helper" >
+	<b>New Ads Found: </b>
+	Following searches have new ads.
+	<div style="clear: both; height: 20px"> </div>
+
+	<!--<script src="gan.js"></script>-->
+</body>
+</html>

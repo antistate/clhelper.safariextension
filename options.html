@@ -1,0 +1,172 @@
+<html>
+<head>
+	<!--<link rel="stylesheet" type="text/css" href="cl_helper.css" />-->
+	<script src="jquery/jquery-1.5.min.js"></script>
+	<script src="jquery/jquery.validate.min.js"></script>
+	<script src="options.js"></script>
+	<style type="text/css">
+		div.container {border-radius: 10px; width: 440px; background-color:white; padding:10px; overflow: auto; border: 3px lightblue solid;white-space: normal; margin-left:auto; margin-right:auto;}
+		label.error { color: red;vertical-align: top; }
+		
+		label, input[type="text"]{
+		    float:left;
+		    display:block;
+		}
+		label
+		{
+		    margin-right: 20px;
+			/*text-align: right;*/
+			/*font-weight: 500;*/
+		}
+		.field{
+		    width:95%;
+		    overflow:auto;
+		    margin:10px 0px;
+			padding: 5px;
+			/*border: 2px solid lightgray;*/
+			border-radius: 3px;
+			margin-left: auto; margin-right: auto;
+		}
+
+		.help {
+			margin-left: 20px;
+			font-weight: 350;
+		}
+
+		/*div > div {margin: 1px;}*/
+		div.field:hover {
+		  background: #f8f8f8;
+		}
+
+		#saveMsg {text-align: center; color: green; font-weight: bold; font-size: 12pt;}
+
+		a {text-decoration: none;}
+	</style>
+</head>
+<body>
+
+<div style="width: 440px; align: center; text-align: center; margin-left: auto; margin-right: auto;">
+	<a href="http://ziink.com"><img style="position: relative; top: 3px" src="images/peace_icon.png"> </a> 
+	<a href="notes.html">Notes</a> | 
+	<a href="monitors.html">Alerts</a> | 
+	<a href="starred.html">Starred</a> | 
+	<a href="blacklist.html">Blacklist</a> | 
+	<a href="recentsearches.html">Recent Searches</a> 
+</div>
+<br />
+<br />
+
+<div class="container">
+	<h2>Craigslist Helper Options</h2>
+	<hr><br>
+	<form name="optionsForm" id="optionsForm" onSubmit="saveOptions(); return false;">
+		<fieldset>
+			<legend>Behaviour</legend>
+			<div class="field">
+				<label for="lazyLoad" title="Use this to save bandwidth. The thumbnails won't show unless you preview the ad by moving the mouse over the ad title. ">Do Not Prefetch Ads<br><small>Preview on MouseOver</small></label>
+				<input id="lazyLoad" name="lazyLoad" type="checkbox" value="lazyLoad">
+			</div>
+			<div class="field">
+				<label for="showTn" title="You might want to turn this off if you've selected 'Do Not Prefetch Ads'. If turned off, the images are shown in the ad preview.">Show Thumbnails</label>
+				<input id="showTn" name="showTn" type="checkbox" value="showTn">
+			</div>
+			<div class="field">
+				<label for="hlNew" title="Only if you've visited the page before and there are less than 100 new ads.">Highlight New Ads</label>
+				<input id="hlNew" name="hlNew" type="checkbox" value="hlNew">
+			</div>
+			<div class="field">
+				<label for="autoExpandSearch" title="Search will expand when you move mouse over 'Expand Search Form' text on top left of results page.">Auto-expand Search Form</label>
+				<input id="autoExpandSearch" name="autoExpandSearch" type="checkbox" value="autoExpandSearch">
+			</div>
+			<div class="field">
+				<label for="showAdTextChars" title="Number of characters of the ad text to display in the search results">Show Ad Text</label>
+				<input id="showAdTextChars" name="showAdTextChars" class="inputField" size="3" maxlength="3" type="text">
+			</div>
+			<div class="field">
+				<label for="hideNotificationTime" title="The notification window will automatically close after the specified number of minutes">Hide Notifications After (Minutes)<br><small>0 means do not close</small></label>
+				<input id="hideNotificationTime" name="hideNotificationTime" class="inputField" size="3" maxlength="3" type="text">
+			</div>
+			<div class="field">
+				<label title="A new tab with selected provider will be opened when sending email.">Email Provider :</label><br>
+				
+				<input type="radio" id="noemail" name="email" value="none">None | 
+				<input type="radio" id="gmail" name="email" value="gmail">GMail | 
+				<input type="radio" id="yahoo" name="email" value="yahoo">Yahoo! | 
+				<input type="radio" id="hotmail" name="email" value="hotmail">Hotmail | 
+				<input type="radio" id="aol" name="email" value="aol">AOL
+
+			</div>
+			<div class="field">
+				<label for="excludeSig" title="Do not add CL Helper info to email.">[Pro] Exclude CL Helper Sig</label>
+				<input id="excludeSig" name="excludeSig" type="checkbox" value="excludeSig">
+			</div>
+		</fieldset>
+
+		
+		<fieldset>
+			<legend>Appearance</legend>
+			<div class="field">
+				<label for="tnMaxWidth">Thumbnail Maximum Width</label>
+				<input id="tnMaxWidth" name="tnMaxWidth" class="inputField" size="3" maxlength="3" type="text">
+			</div>
+			<div class="field">
+				<label for="tnMaxHeight">Thumbnail Maximum Height</label>
+				<input id="tnMaxHeight" name="tnMaxHeight" class="inputField" size="3" maxlength="3" type="text">
+			</div>
+			<div class="field">
+				<label for="tnMax">Maximum Thumbnails Per Ad</label>
+				<input id="tnMax" name="tnMax" class="inputField" size="3" maxlength="2" type="text">
+			</div>
+			<div class="field">
+				<label for="imgMinWidth">Image Preview Minimum Width</label>
+				<input id="imgMinWidth" name="imgMinWidth" class="inputField" size="3" maxlength="3" type="text">
+			</div>
+			<div class="field">
+				<label for="imgMinHeight">Image Preview Minimum Height</label>
+				<input id="imgMinHeight" name="imgMinHeight" class="inputField" size="3" maxlength="3" type="text">
+			</div>
+			<div class="field">
+				<label for="imgMaxWidth">Image Preview Maximum Width</label>
+				<input id="imgMaxWidth" name="imgMaxWidth" class="inputField" size="3" maxlength="3" type="text">
+			</div>
+			<div class="field">
+				<label for="imgMaxHeight">Image Preview Maximum Height</label>
+				<input id="imgMaxHeight" name="imgMaxHeight" class="inputField" size="3" maxlength="3" type="text">
+			</div>
+			<div class="field">
+				<label for="adWidth" title="How wide should the ad preview popup be?">Ad Preview Width</label>
+				<input id="adWidth" name="adWidth" class="inputField" size="3" maxlength="4" type="text">
+			</div>
+			<div class="field">
+				<label for="mapWidth">Map Popup Width</label>
+				<input id="mapWidth" name="mapWidth" class="inputField" size="3" maxlength="3" type="text">
+			</div>
+			<div class="field">
+				<label for="mapHeight">Map Popup Height</label>
+				<input id="mapHeight" name="mapHeight" class="inputField" size="3" maxlength="3" type="text">
+			</div>
+			<div class="field">
+				<label for="highlightColor">New Ad Hightlight Color<br><small>Click on <a target="_blank" href="http://www.colorpicker.com/">#</a> to help choose color</small></label>
+				<div style="float:left;"><a target="_blank" href="http://www.colorpicker.com/">#</a></div>
+				<input id="highlightColor" name="highlightColor" class="inputField" size="6" maxlength="6" type="text">
+			</div>
+			<div class="field">
+				<label for="notesBgColor">Notes Background Color<br><small>Click on <a target="_blank" href="http://www.colorpicker.com/">#</a> to help choose color</small></label>
+				<div style="float:left;"><a target="_blank" href="http://www.colorpicker.com/">#</a></div>
+				<input id="notesBgColor" name="notesBgColor" class="inputField" size="6" maxlength="6" type="text">
+			</div>
+			<div class="field">
+				<label for="bodyWidth">Maximum Content Width</label>
+				<input id="bodyWidth" name="bodyWidth" class="inputField" size="3" maxlength="4" type="text">
+			</div>
+		</fieldset>
+		<div style="width: 120px; align: center; margin-left: auto; margin-right: auto;" id="saveMsg"></div>
+		<div style="width: 60px; align: center; margin-left: auto; margin-right: auto;"> <input type="submit" value="Save"> </div>
+	</form>
+
+</div>
+
+	<!--<script src="gan.js"></script>-->
+
+</body>
+</html>
