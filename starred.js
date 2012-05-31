@@ -1,1 +1,1 @@
-getListings("getStarred");
+getListings('getStarred');

@@ -1,11 +1,11 @@
-if (typeof safari === "undefined") {
-    var zSafari = false
+if (typeof safari === 'undefined') {
+    var zSafari = false;
 } else {
-    var zSafari = true
+    var zSafari = true;
 }
-var extPath = zSafari ? safari.extension.baseURI : chrome.extension.getURL("");
+var extPath = zSafari ? safari.extension.baseURI : chrome.extension.getURL('');
 var options = {
-    emailProvider: "unset",
+    emailProvider: 'unset',
     smartMode: false,
     lazyLoad: false,
     showTn: true,
@@ -22,8 +22,8 @@ var options = {
     adWidth: 880,
     mapWidth: 350,
     mapHeight: 350,
-    highlightColor: "FFFFD8",
-    notesBgColor: "E5FFE5",
+    highlightColor: 'FFFFD8',
+    notesBgColor: 'E5FFE5',
     bodyWidth: 1280,
     autoExpandSearch: true,
     searchFormExpanded: false,
@@ -35,7 +35,7 @@ var notification = null,
 var db;
 var userPos, sitesNearUser = [],
     userSite = {
-        url: "unset",
+        url: 'unset',
         lat: 0,
         lon: 0
     };
@@ -48,243 +48,243 @@ function init() {
     initDb();
     readBlacklist();
     if (zSafari) {
-        safari.application.addEventListener("message", safariMessageListener, true)
+        safari.application.addEventListener('message', safariMessageListener, true);
     } else {
-        chrome.extension.onRequest.addListener(requestListener)
+        chrome.extension.onRequest.addListener(requestListener);
     }
     setupMonitor();
     addContextMenus();
     if (localStorage.options) {
-        $.extend(options, JSON.parse(localStorage.options))
+        $.extend(options, JSON.parse(localStorage.options));
     }
     localStorage.options = JSON.stringify(options);
-    window.addEventListener("storage", storageChanged, false);
-    navigator.geolocation.getCurrentPosition(function (d) {
+    window.addEventListener('storage', storageChanged, false);
+    navigator.geolocation.getCurrentPosition(function(d) {
         userPos = d;
-        getSitesNear(userPos.coords.latitude, userPos.coords.longitude, nearSitesRadius, function (e) {
+        getSitesNear(userPos.coords.latitude, userPos.coords.longitude, nearSitesRadius, function(e) {
             userSite = e[0];
-            sitesNearUser = e
-        })
+            sitesNearUser = e;
+        });
     });
-    if (localStorage.clsites != "inDb") {
-        loadJsFile("site_locations.js")
+    if (localStorage.clsites != 'inDb') {
+        loadJsFile('site_locations.js');
     }
-    _gaq.push(["_trackPageview", "/adblock_check"]);
+    _gaq.push(['_trackPageview', '/adblock_check']);
     var c = new Image();
-    c.onload = function () {
-        _gaq.push(["_trackPageview", "/adblock_plus"]);
+    c.onload = function() {
+        _gaq.push(['_trackPageview', '/adblock_plus']);
         abPresent = true;
-        options.abPresent = abPresent
+        options.abPresent = abPresent;
     };
     var b = new Image();
-    b.onload = function () {
-        _gaq.push(["_trackPageview", "/adblock"]);
+    b.onload = function() {
+        _gaq.push(['_trackPageview', '/adblock']);
         abPresent = true;
-        options.abPresent = abPresent
+        options.abPresent = abPresent;
     };
     try {
-        c.src = "chrome-extension://cfhdojbkjhnklbpkdaibdccddilifddb/icons/abp-16.png";
-        b.src = "chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/img/icon16.png"
+        c.src = 'chrome-extension://cfhdojbkjhnklbpkdaibdccddilifddb/icons/abp-16.png';
+        b.src = 'chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/img/icon16.png';
     } catch (a) {}
 }
 function storageChanged() {
     options = JSON.parse(localStorage.options);
     broadcastMessage({
-        op: "optionsUpdated",
+        op: 'optionsUpdated',
         options: options
-    })
+    });
 }
 function addContextMenus() {
     if (zSafari) {
-        safari.application.addEventListener("contextmenu", a, false);
+        safari.application.addEventListener('contextmenu', a, false);
 
         function a(b) {
             if (b.userInfo) {
-                b.contextMenu.appendContextMenuItem("zIgnorePhrase", "Ignore Ads Containing Selected Phrase")
+                b.contextMenu.appendContextMenuItem('zIgnorePhrase', 'Ignore Ads Containing Selected Phrase');
             }
         }
     } else {
         chrome.contextMenus.create({
-            title: "Ignore Ads Containing Selected Phrase",
-            contexts: ["selection"],
-            documentUrlPatterns: ["http://*.craigslist.org/*", "http://*.craigslist.ca/*", "http://*.craigslist.hk/*", "http://*.craigslist.co.uk/*"],
+            title: 'Ignore Ads Containing Selected Phrase',
+            contexts: ['selection'],
+            documentUrlPatterns: ['http://*.craigslist.org/*', 'http://*.craigslist.ca/*', 'http://*.craigslist.hk/*', 'http://*.craigslist.co.uk/*'],
             onclick: ignorePhrase
         });
         chrome.contextMenus.create({
-            title: "Do Not Show In Preview",
-            contexts: ["image"],
-            documentUrlPatterns: ["http://*.craigslist.org/*", "http://*.craigslist.ca/*", "http://*.craigslist.hk/*", "http://*.craigslist.co.uk/*"],
+            title: 'Do Not Show In Preview',
+            contexts: ['image'],
+            documentUrlPatterns: ['http://*.craigslist.org/*', 'http://*.craigslist.ca/*', 'http://*.craigslist.hk/*', 'http://*.craigslist.co.uk/*'],
             onclick: ignorePreviewImage
-        })
+        });
     }
 }
 function initDb() {
-    db = openDatabase("cl_helper", "0.01", "Craigslist Helper", 5 * 1024 * 1024);
-    db.transaction(function (a) {
-        a.executeSql("CREATE TABLE IF NOT EXISTS starred(id INTEGER PRIMARY KEY ASC, adDate TEXT, title TEXT, price TEXT, loc TEXT, url TEXT, timeStamp INTEGER)", null, null, onDbError);
-        a.executeSql("CREATE INDEX IF NOT EXISTS timeStamp ON starred (timeStamp)", null, null, onDbError);
-        a.executeSql("CREATE TABLE IF NOT EXISTS ignored(id INTEGER PRIMARY KEY ASC, timeStamp INTEGER)", null, null, onDbError);
-        a.executeSql("CREATE INDEX IF NOT EXISTS timeStamp ON ignored (timeStamp)", null, null, onDbError);
-        a.executeSql("CREATE TABLE IF NOT EXISTS notes(id INTEGER PRIMARY KEY ASC, note TEXT, adDate TEXT, title TEXT, price TEXT, loc TEXT, url TEXT, timeStamp INTEGER)", null, null, onDbError);
-        a.executeSql("CREATE INDEX IF NOT EXISTS timeStamp ON notes (timeStamp)", null, null, onDbError);
-        a.executeSql("CREATE TABLE IF NOT EXISTS blacklist(phrase TEXT PRIMARY KEY ASC, timeStamp INTEGER)", null, null, onDbError);
-        a.executeSql("CREATE INDEX IF NOT EXISTS timeStamp ON blacklist (timeStamp)", null, null, onDbError);
+    db = openDatabase('cl_helper', '0.01', 'Craigslist Helper', 5 * 1024 * 1024);
+    db.transaction(function(a) {
+        a.executeSql('CREATE TABLE IF NOT EXISTS starred(id INTEGER PRIMARY KEY ASC, adDate TEXT, title TEXT, price TEXT, loc TEXT, url TEXT, timeStamp INTEGER)', null, null, onDbError);
+        a.executeSql('CREATE INDEX IF NOT EXISTS timeStamp ON starred (timeStamp)', null, null, onDbError);
+        a.executeSql('CREATE TABLE IF NOT EXISTS ignored(id INTEGER PRIMARY KEY ASC, timeStamp INTEGER)', null, null, onDbError);
+        a.executeSql('CREATE INDEX IF NOT EXISTS timeStamp ON ignored (timeStamp)', null, null, onDbError);
+        a.executeSql('CREATE TABLE IF NOT EXISTS notes(id INTEGER PRIMARY KEY ASC, note TEXT, adDate TEXT, title TEXT, price TEXT, loc TEXT, url TEXT, timeStamp INTEGER)', null, null, onDbError);
+        a.executeSql('CREATE INDEX IF NOT EXISTS timeStamp ON notes (timeStamp)', null, null, onDbError);
+        a.executeSql('CREATE TABLE IF NOT EXISTS blacklist(phrase TEXT PRIMARY KEY ASC, timeStamp INTEGER)', null, null, onDbError);
+        a.executeSql('CREATE INDEX IF NOT EXISTS timeStamp ON blacklist (timeStamp)', null, null, onDbError);
         a.executeSql('CREATE TABLE IF NOT EXISTS monitor(url TEXT PRIMARY KEY ASC, active INTEGER DEFAULT 0, topAd INTEGER DEFAULT 0, title TEXT DEFAULT "", frequency INTEGER DEFAULT 0, time_unit INTEGER DEFAULT 0, check_at INTEGER DEFAULT 0, last_checked INTEGER, timeStamp INTEGER)', null, null, onDbError);
-        a.executeSql("CREATE INDEX IF NOT EXISTS timeStamp ON monitor (timeStamp)", null, null, onDbError);
-        a.executeSql("CREATE TABLE IF NOT EXISTS clsites(url TEXT PRIMARY KEY ASC, title TEXT NOT NULL, state TEXT NOT NULL, lat REAL NOT NULL, lon REAL NOT NULL)", null, null, onDbError);
-        a.executeSql("CREATE INDEX IF NOT EXISTS lat ON clsites (lat)", null, null, onDbError);
-        a.executeSql("CREATE INDEX IF NOT EXISTS lon ON clsites (lon)", null, null, onDbError);
+        a.executeSql('CREATE INDEX IF NOT EXISTS timeStamp ON monitor (timeStamp)', null, null, onDbError);
+        a.executeSql('CREATE TABLE IF NOT EXISTS clsites(url TEXT PRIMARY KEY ASC, title TEXT NOT NULL, state TEXT NOT NULL, lat REAL NOT NULL, lon REAL NOT NULL)', null, null, onDbError);
+        a.executeSql('CREATE INDEX IF NOT EXISTS lat ON clsites (lat)', null, null, onDbError);
+        a.executeSql('CREATE INDEX IF NOT EXISTS lon ON clsites (lon)', null, null, onDbError);
         var b = new Date().getTime() - 5184000000;
-        a.executeSql("DELETE FROM ignored WHERE timeStamp < " + b, null, null, onDbError);
-        a.executeSql("DELETE FROM starred WHERE timeStamp < " + b, null, null, onDbError);
-        a.executeSql("DELETE FROM notes WHERE timeStamp < " + b, null, null, onDbError);
-        a.executeSql("DELETE FROM monitor WHERE active = 0 AND timeStamp < " + b, null, null, onDbError);
-        a.executeSql("SELECT * FROM clsites LIMIT 1", null, function (c, d) {
+        a.executeSql('DELETE FROM ignored WHERE timeStamp < ' + b, null, null, onDbError);
+        a.executeSql('DELETE FROM starred WHERE timeStamp < ' + b, null, null, onDbError);
+        a.executeSql('DELETE FROM notes WHERE timeStamp < ' + b, null, null, onDbError);
+        a.executeSql('DELETE FROM monitor WHERE active = 0 AND timeStamp < ' + b, null, null, onDbError);
+        a.executeSql('SELECT * FROM clsites LIMIT 1', null, function(c, d) {
             if (d.rows.length == 0) {
-                loadJsFile("site_locations.js")
+                loadJsFile('site_locations.js');
             }
-        }, onDbError)
-    })
+        }, onDbError);
+    });
 }
 function readBlacklist() {
-    db.readTransaction(function (a) {
-        a.executeSql("SELECT phrase FROM blacklist", null, function (b, c) {
+    db.readTransaction(function(a) {
+        a.executeSql('SELECT phrase FROM blacklist', null, function(b, c) {
             var e = new Array();
             var d = c.rows.length;
             for (i = 0; i < d; i++) {
-                e.push(c.rows.item(i).phrase)
+                e.push(c.rows.item(i).phrase);
             }
-            blacklist = e
-        }, onDbError)
-    })
+            blacklist = e;
+        }, onDbError);
+    });
 }
 function checkBlacklist(a) {
     for (i = 0; i < blacklist.length; i++) {
-        if (a.match(new RegExp(blacklist[i], "i"))) {
-            return true
+        if (a.match(new RegExp(blacklist[i], 'i'))) {
+            return true;
         }
     }
-    return false
+    return false;
 }
 function checkForNewAdMulti(d) {
     function e(h, g, k) {
-        g = g ? g : function () {};
+        g = g ? g : function() {};
         if (!h || !h.length) {
-            return g(k)
+            return g(k);
         }
         var f = h.shift();
         var j = f.match(/\/(\d{8,})\.html/)[1];
         if (j * 1 <= d.topAd * 1) {
-            return g(k)
+            return g(k);
         }
-        $.get(f, function (l) {
-            if (l.indexOf("page will be removed in just a few minutes") > 0) {
+        $.get(f, function(l) {
+            if (l.indexOf('page will be removed in just a few minutes') > 0) {
                 e(h, g, k);
-                return
+                return;
             }
-            l = l.substring(l.indexOf("<h2>"));
+            l = l.substring(l.indexOf('<h2>'));
             if (!checkBlacklist(l)) {
-                console.log("New ad found: " + j + ", oldTop: " + d.topAd);
+                console.log('New ad found: ' + j + ', oldTop: ' + d.topAd);
                 newAlerts.push({
                     url: d.url,
                     title: d.title
                 });
                 if (notification == null) {
-                    notification = webkitNotifications.createHTMLNotification(extPath + "notification.html");
-                    notification.onclose = function () {
-                        notification = null
+                    notification = webkitNotifications.createHTMLNotification(extPath + 'notification.html');
+                    notification.onclose = function() {
+                        notification = null;
                     };
-                    notification.show()
+                    notification.show();
                 }
-                return
+                return;
             }
-            e(h, g, k)
-        })
+            e(h, g, k);
+        });
     }
     function b(f) {
-        var g = f.match(/http:\/\/[^\/]+\/(.*)/)[1].replace(/index\d+\.html/, "").replace(/\&s=\d+/, "");
-        g = g.replace(/^(search\/[^\/]+)\/[^?]+/, "$1");
-        g = g.replace(/^[^\/]+\/([^\/]+\/)$/, "$1");
-        g = g.replace(/#.*/, "");
-        return g
+        var g = f.match(/http:\/\/[^\/]+\/(.*)/)[1].replace(/index\d+\.html/, '').replace(/\&s=\d+/, '');
+        g = g.replace(/^(search\/[^\/]+)\/[^?]+/, '$1');
+        g = g.replace(/^[^\/]+\/([^\/]+\/)$/, '$1');
+        g = g.replace(/#.*/, '');
+        return g;
     }
     function c(h) {
         if (h.length == 0) {
-            return
+            return;
         }
         var g = b(d.url);
         var f = h.shift();
         requestListener({
-            op: "getUrl",
+            op: 'getUrl',
             url: f.url + g
-        }, null, function (j) {
+        }, null, function(j) {
             if (!j) {
-                return
+                return;
             }
-            j = j.replace(/Here are some from NEARBY areas[\s\S]*/, "");
-            e(j.match(/http:\/\/[\/.a-zA-Z0-9]*\d{8,}\.html/g), c, h)
-        })
+            j = j.replace(/Here are some from NEARBY areas[\s\S]*/, '');
+            e(j.match(/http:\/\/[\/.a-zA-Z0-9]*\d{8,}\.html/g), c, h);
+        });
     }
-    if (d.url.indexOf("#sw") > 0) {
+    if (d.url.indexOf('#sw') > 0) {
         var a = d.url.match(/#sw=(\d+)/)[1];
         requestListener({
-            op: "getNearbySites",
+            op: 'getNearbySites',
             url: d.url,
             radius: a
-        }, null, c)
+        }, null, c);
     } else {
-        if (d.url.indexOf("#st") > 0) {
+        if (d.url.indexOf('#st') > 0) {
             requestListener({
-                op: "getStateSites",
+                op: 'getStateSites',
                 url: d.url
-            }, null, c)
+            }, null, c);
         } else {
-            jQuery.get(d.url, function (f) {
+            jQuery.get(d.url, function(f) {
                 if (!f) {
-                    return
+                    return;
                 }
-                e(f.match(/http:\/\/[\/.a-zA-Z0-9]*\d{8,}\.html/g))
-            })
+                e(f.match(/http:\/\/[\/.a-zA-Z0-9]*\d{8,}\.html/g));
+            });
         }
     }
-    db.transaction(function (f) {
-        f.executeSql("UPDATE monitor SET check_at = ? WHERE url = ?", [d.frequency * d.time_unit + new Date().getTime(), d.url], null, onDbError)
+    db.transaction(function(f) {
+        f.executeSql('UPDATE monitor SET check_at = ? WHERE url = ?', [d.frequency * d.time_unit + new Date().getTime(), d.url], null, onDbError);
     });
-    setupMonitor()
+    setupMonitor();
 }
 function checkMonitors(a) {
-    console.log("Check Monitors : " + new Date());
-    var b = a ? "SELECT url, title, topAd, frequency, time_unit FROM monitor WHERE active > 0 AND 0 < ?" : "SELECT url, title, topAd, frequency, time_unit FROM monitor WHERE active > 0 AND check_at < ? ORDER BY check_at ASC";
-    db.readTransaction(function (c) {
-        c.executeSql(b, [new Date().getTime()], function (e, f) {
+    console.log('Check Monitors : ' + new Date());
+    var b = a ? 'SELECT url, title, topAd, frequency, time_unit FROM monitor WHERE active > 0 AND 0 < ?' : 'SELECT url, title, topAd, frequency, time_unit FROM monitor WHERE active > 0 AND check_at < ? ORDER BY check_at ASC';
+    db.readTransaction(function(c) {
+        c.executeSql(b, [new Date().getTime()], function(e, f) {
             var d = f.rows.length;
             if (d < 1) {
                 setupMonitor();
-                return
+                return;
             }
             for (var g = 0; g < d; g++) {
-                console.log("Check for new ads");
-                checkForNewAdMulti(f.rows.item(g))
+                console.log('Check for new ads');
+                checkForNewAdMulti(f.rows.item(g));
             }
-        }, onDbError)
-    })
+        }, onDbError);
+    });
 }
 function setupMonitor() {
     if (timeOut) {
-        clearTimeout(timeOut)
+        clearTimeout(timeOut);
     }
-    db.readTransaction(function (a) {
-        a.executeSql("SELECT url, topAd, check_at, frequency, time_unit FROM monitor WHERE active > 0 ORDER BY check_at ASC LIMIT 1", null, function (b, c) {
+    db.readTransaction(function(a) {
+        a.executeSql('SELECT url, topAd, check_at, frequency, time_unit FROM monitor WHERE active > 0 ORDER BY check_at ASC LIMIT 1', null, function(b, c) {
             if (c.rows.length) {
                 var d = c.rows.item(0);
                 if (d.check_at <= new Date().getTime()) {
-                    checkMonitors()
+                    checkMonitors();
                 } else {
-                    timeOut = setTimeout(checkMonitors, Math.abs(d.check_at - new Date().getTime()))
+                    timeOut = setTimeout(checkMonitors, Math.abs(d.check_at - new Date().getTime()));
                 }
             }
-        }, onDbError)
-    })
+        }, onDbError);
+    });
 }
 function broadcastMessage(f) {
     if (zSafari) {
@@ -292,36 +292,36 @@ function broadcastMessage(f) {
         for (var e = 0, a = g.length; e < a; e++) {
             var d = g[e].tabs;
             for (var c = 0, b = d.length; c < b; c++) {
-                d[c].page.dispatchMessage("ziinkcl", f)
+                d[c].page.dispatchMessage('ziinkcl', f);
             }
         }
     } else {
-        chrome.windows.getAll(null, function (h) {
+        chrome.windows.getAll(null, function(h) {
             for (e = 0; e < h.length; e++) {
-                chrome.tabs.getAllInWindow(h[e].id, function (j) {
+                chrome.tabs.getAllInWindow(h[e].id, function(j) {
                     for (c = 0; c < j.length; c++) {
-                        chrome.tabs.sendRequest(j[c].id, f)
+                        chrome.tabs.sendRequest(j[c].id, f);
                     }
-                })
+                });
             }
-        })
+        });
     }
 }
 function ignorePhrase(a) {
-    db.transaction(function (c) {
-        var b = a.selectionText.toLowerCase().replace(/^\s+/, "").replace(/\s+$/, "");
-        if (b == "") {
-            return
+    db.transaction(function(c) {
+        var b = a.selectionText.toLowerCase().replace(/^\s+/, '').replace(/\s+$/, '');
+        if (b == '') {
+            return;
         }
-        c.executeSql("REPLACE INTO blacklist VALUES(?,?)", [b, new Date().getTime()], null, onDbError);
+        c.executeSql('REPLACE INTO blacklist VALUES(?,?)', [b, new Date().getTime()], null, onDbError);
         if (jQuery.inArray(b, blacklist) == -1) {
-            blacklist.push(b)
+            blacklist.push(b);
         }
         broadcastMessage({
-            op: "ignorePhrase",
+            op: 'ignorePhrase',
             phrases: [b]
-        })
-    })
+        });
+    });
 }
 function crc(b) {
     var a = 0;
@@ -330,31 +330,31 @@ function crc(b) {
         a += d;
         if (a < 0) {
             a <<= 1;
-            a += 1
+            a += 1;
         } else {
-            a <<= 1
+            a <<= 1;
         }
     }
-    return a
+    return a;
 }
 function ignorePreviewImage(a) {
-    var b = b(a.srcUrl)
+    var b = b(a.srcUrl);
 }
 function onDbError(a, b) {
-    console.log("Database Error: " + b.message)
+    console.log('Database Error: ' + b.message);
 }
 function getSiteLocation(a, b) {
-    if (a.indexOf("http://") != 0 || a[a.length - 1] != "/") {
-        console.log("url sent to getSiteLocation should begin http:// and contain the trailing slash.");
-        return
+    if (a.indexOf('http://') != 0 || a[a.length - 1] != '/') {
+        console.log('url sent to getSiteLocation should begin http:// and contain the trailing slash.');
+        return;
     }
-    db.readTransaction(function (c) {
-        c.executeSql("SELECT * FROM clsites WHERE url = ?", [a], function (d, e) {
+    db.readTransaction(function(c) {
+        c.executeSql('SELECT * FROM clsites WHERE url = ?', [a], function(d, e) {
             if (e.rows.length) {
-                b(e.rows.item(0))
+                b(e.rows.item(0));
             }
-        }, onDbError)
-    })
+        }, onDbError);
+    });
 }
 function getSitesNear(k, b, a, d) {
     var c = 69.04;
@@ -363,8 +363,8 @@ function getSitesNear(k, b, a, d) {
     var e = k + a / c;
     var h = b - a / j;
     var g = b + a / j;
-    db.readTransaction(function (l) {
-        l.executeSql("SELECT * FROM clsites WHERE lat > ? AND lat < ? AND lon > ? AND lon < ?", [f, e, h, g], function (n, o) {
+    db.readTransaction(function(l) {
+        l.executeSql('SELECT * FROM clsites WHERE lat > ? AND lat < ? AND lon > ? AND lon < ?', [f, e, h, g], function(n, o) {
             var r = [];
             var m = o.rows.length;
             if (m) {
@@ -372,18 +372,18 @@ function getSitesNear(k, b, a, d) {
                     var p = o.rows.item(q);
                     var s = calculateDistance(p.lat, p.lon, k, b);
                     if (s > a) {
-                        continue
+                        continue;
                     }
                     p.distance = s;
-                    r.push(p)
+                    r.push(p);
                 }
-                r.sort(function (u, t) {
-                    return u.distance - t.distance
+                r.sort(function(u, t) {
+                    return u.distance - t.distance;
                 });
-                d(r)
+                d(r);
             }
-        }, onDbError)
-    })
+        }, onDbError);
+    });
 }
 function calculateDistance(f, j, e, h) {
     var g = 3958.755;
@@ -392,436 +392,436 @@ function calculateDistance(f, j, e, h) {
     var n = Math.sin(l / 2) * Math.sin(l / 2) + Math.cos(f * Math.PI / 180) * Math.cos(e * Math.PI / 180) * Math.sin(b / 2) * Math.sin(b / 2);
     var m = 2 * Math.atan2(Math.sqrt(n), Math.sqrt(1 - n));
     var k = g * m;
-    return k
+    return k;
 }
 function loadJsFile(a) {
-    var b = document.createElement("script");
-    b.setAttribute("type", "text/javascript");
-    b.setAttribute("src", a);
-    document.getElementsByTagName("head")[0].appendChild(b)
+    var b = document.createElement('script');
+    b.setAttribute('type', 'text/javascript');
+    b.setAttribute('src', a);
+    document.getElementsByTagName('head')[0].appendChild(b);
 }
 function loadCssFile(a) {
-    var b = document.createElement("link");
-    b.setAttribute("rel", "stylesheet");
-    b.setAttribute("type", "text/css");
-    b.setAttribute("href", a);
-    document.getElementsByTagName("head")[0].appendChild(b)
+    var b = document.createElement('link');
+    b.setAttribute('rel', 'stylesheet');
+    b.setAttribute('type', 'text/css');
+    b.setAttribute('href', a);
+    document.getElementsByTagName('head')[0].appendChild(b);
 }
 function loadJsCssFile(a, b) {
-    if (b == "js") {
-        var c = document.createElement("script");
-        c.setAttribute("type", "text/javascript");
-        c.setAttribute("src", a)
+    if (b == 'js') {
+        var c = document.createElement('script');
+        c.setAttribute('type', 'text/javascript');
+        c.setAttribute('src', a);
     } else {
-        if (b == "css") {
-            var c = document.createElement("link");
-            c.setAttribute("rel", "stylesheet");
-            c.setAttribute("type", "text/css");
-            c.setAttribute("href", a)
+        if (b == 'css') {
+            var c = document.createElement('link');
+            c.setAttribute('rel', 'stylesheet');
+            c.setAttribute('type', 'text/css');
+            c.setAttribute('href', a);
         }
     }
-    if (typeof c != "undefined") {
-        document.getElementsByTagName("head")[0].appendChild(c)
+    if (typeof c != 'undefined') {
+        document.getElementsByTagName('head')[0].appendChild(c);
     }
 }
 function safariMessageListener(a) {
-    if (a.name == "ziinkcl") {
-        requestListener(a.message, null, function (b) {
+    if (a.name == 'ziinkcl') {
+        requestListener(a.message, null, function(b) {
             if (a.message.responseFunc != undefined) {
-                a.target.page.dispatchMessage("ziinkcl_response", {
+                a.target.page.dispatchMessage('ziinkcl_response', {
                     responseFunc: a.message.responseFunc,
                     data: b
-                })
+                });
             }
-        })
+        });
     }
 }
 function requestListener(g, h, d) {
     switch (g.op) {
-    case "putNote":
-        db.transaction(function (e) {
-            if ("" == g.note) {
-                e.executeSql("DELETE FROM notes WHERE id = ?", [g.id], null, onDbError)
+    case 'putNote':
+        db.transaction(function(e) {
+            if ('' == g.note) {
+                e.executeSql('DELETE FROM notes WHERE id = ?', [g.id], null, onDbError);
             } else {
-                e.executeSql("REPLACE INTO notes VALUES(?, ?, ?, ?, ?, ?, ?, ?)", [g.id, g.note, g.date, g.title, g.price, g.loc, g.url, new Date().getTime()], null, onDbError)
+                e.executeSql('REPLACE INTO notes VALUES(?, ?, ?, ?, ?, ?, ?, ?)', [g.id, g.note, g.date, g.title, g.price, g.loc, g.url, new Date().getTime()], null, onDbError);
             }
             broadcastMessage({
-                op: "noteUpdated",
+                op: 'noteUpdated',
                 id: g.id,
                 note: g.note
-            })
+            });
         });
         d();
         break;
-    case "getNote":
-        db.readTransaction(function (e) {
-            e.executeSql("SELECT note FROM notes WHERE id = ?", [g.id], function (m, n) {
+    case 'getNote':
+        db.readTransaction(function(e) {
+            e.executeSql('SELECT note FROM notes WHERE id = ?', [g.id], function(m, n) {
                 if (n.rows.length) {
-                    d(n.rows.item(0).note)
+                    d(n.rows.item(0).note);
                 } else {
-                    d()
+                    d();
                 }
-            }, onDbError)
+            }, onDbError);
         });
         break;
-    case "getIgnored":
-        db.readTransaction(function (e) {
-            var n = "(";
+    case 'getIgnored':
+        db.readTransaction(function(e) {
+            var n = '(';
             for (var m = 0; m < g.ids.length; m++) {
-                n += g.ids[m] + ","
+                n += g.ids[m] + ',';
             }
-            n += "0)";
-            e.executeSql("SELECT id FROM ignored WHERE id IN " + n, null, function (o, p) {
+            n += '0)';
+            e.executeSql('SELECT id FROM ignored WHERE id IN ' + n, null, function(o, p) {
                 var r = new Array();
                 var q = p.rows.length;
                 for (m = 0; m < q; m++) {
-                    r.push(p.rows.item(m).id)
+                    r.push(p.rows.item(m).id);
                 }
-                d(r)
-            }, onDbError)
+                d(r);
+            }, onDbError);
         });
         break;
-    case "ignore":
-        db.transaction(function (e) {
-            e.executeSql("REPLACE INTO ignored VALUES(?,?)", [g.id, new Date().getTime()], null, onDbError)
-        });
-        d();
-        break;
-    case "removeIgnore":
-        db.transaction(function (e) {
-            e.executeSql("DELETE FROM ignored WHERE id = ?", [g.id], null, onDbError)
+    case 'ignore':
+        db.transaction(function(e) {
+            e.executeSql('REPLACE INTO ignored VALUES(?,?)', [g.id, new Date().getTime()], null, onDbError);
         });
         d();
         break;
-    case "getStarredIds":
-        db.readTransaction(function (e) {
-            var n = "(";
+    case 'removeIgnore':
+        db.transaction(function(e) {
+            e.executeSql('DELETE FROM ignored WHERE id = ?', [g.id], null, onDbError);
+        });
+        d();
+        break;
+    case 'getStarredIds':
+        db.readTransaction(function(e) {
+            var n = '(';
             for (var m = 0; m < g.ids.length; m++) {
-                n += g.ids[m] + ","
+                n += g.ids[m] + ',';
             }
-            n += "0)";
-            e.executeSql("SELECT id FROM starred WHERE id IN " + n, null, function (p, q) {
+            n += '0)';
+            e.executeSql('SELECT id FROM starred WHERE id IN ' + n, null, function(p, q) {
                 var o = new Array();
                 var r = q.rows.length;
                 for (m = 0; m < r; m++) {
-                    o.push(q.rows.item(m).id)
+                    o.push(q.rows.item(m).id);
                 }
-                d(o)
-            }, onDbError)
+                d(o);
+            }, onDbError);
         });
         break;
-    case "getStarred":
-        db.readTransaction(function (e) {
-            e.executeSql("SELECT * FROM starred ORDER BY id DESC", null, function (m, n) {
+    case 'getStarred':
+        db.readTransaction(function(e) {
+            e.executeSql('SELECT * FROM starred ORDER BY id DESC', null, function(m, n) {
                 var p = new Array();
                 var o = n.rows.length;
                 for (i = 0; i < o; i++) {
-                    p.push(n.rows.item(i))
+                    p.push(n.rows.item(i));
                 }
-                d(p)
-            }, onDbError)
+                d(p);
+            }, onDbError);
         });
         break;
-    case "star":
-        db.transaction(function (e) {
+    case 'star':
+        db.transaction(function(e) {
             var m = g.info;
-            e.executeSql("REPLACE INTO starred VALUES(?,?,?,?,?,?,?)", [m.id, m.date, m.title, m.price, m.loc, m.url, new Date().getTime()], null, onDbError)
+            e.executeSql('REPLACE INTO starred VALUES(?,?,?,?,?,?,?)', [m.id, m.date, m.title, m.price, m.loc, m.url, new Date().getTime()], null, onDbError);
         });
         d();
         break;
-    case "removeStar":
-        db.transaction(function (e) {
-            e.executeSql("DELETE FROM starred WHERE id = ?", [g.id], null, onDbError)
+    case 'removeStar':
+        db.transaction(function(e) {
+            e.executeSql('DELETE FROM starred WHERE id = ?', [g.id], null, onDbError);
         });
         d();
         break;
-    case "getNotes":
-        db.readTransaction(function (e) {
+    case 'getNotes':
+        db.readTransaction(function(e) {
             var m = 0;
-            e.executeSql("SELECT * FROM notes ORDER BY timeStamp DESC LIMIT 101 OFFSET ?", [m], function (n, o) {
+            e.executeSql('SELECT * FROM notes ORDER BY timeStamp DESC LIMIT 101 OFFSET ?', [m], function(n, o) {
                 var q = new Array();
                 var p = o.rows.length;
                 for (i = 0; i < p; i++) {
-                    q.push(o.rows.item(i))
+                    q.push(o.rows.item(i));
                 }
-                d(q)
-            }, onDbError)
+                d(q);
+            }, onDbError);
         });
         break;
-    case "getBlacklist":
+    case 'getBlacklist':
         d(blacklist);
         break;
-    case "removeBlacklistItem":
+    case 'removeBlacklistItem':
         var a = jQuery.inArray(g.phrase, blacklist);
         if (a > -1) {
-            blacklist.splice(a, 1)
+            blacklist.splice(a, 1);
         }
-        db.transaction(function (e) {
-            e.executeSql("DELETE FROM blacklist WHERE phrase = ?", [g.phrase], null, onDbError)
+        db.transaction(function(e) {
+            e.executeSql('DELETE FROM blacklist WHERE phrase = ?', [g.phrase], null, onDbError);
         });
         d();
         break;
-    case "addIgnorePhrase":
+    case 'addIgnorePhrase':
         ignorePhrase({
             selectionText: g.text
         });
         d();
         break;
-    case "monitorInfo":
-        db.transaction(function (e) {
-            e.executeSql("SELECT * FROM monitor WHERE url = ?", [g.url], function (n, p) {
+    case 'monitorInfo':
+        db.transaction(function(e) {
+            e.executeSql('SELECT * FROM monitor WHERE url = ?', [g.url], function(n, p) {
                 var m = p.rows.length > 0;
                 var o = null;
                 if (m) {
-                    o = p.rows.item(0)
+                    o = p.rows.item(0);
                 }
                 if (g.update) {
                     if (m) {
-                        n.executeSql("UPDATE monitor SET topAd = ?, timeStamp = ? WHERE url = ?", [g.topAd, new Date().getTime(), g.url], null, onDbError)
+                        n.executeSql('UPDATE monitor SET topAd = ?, timeStamp = ? WHERE url = ?', [g.topAd, new Date().getTime(), g.url], null, onDbError);
                     } else {
-                        n.executeSql("REPLACE INTO monitor (url, title, topAd, timeStamp) VALUES(?,?,?,?)", [g.url, g.title, g.topAd, new Date().getTime()], null, onDbError)
+                        n.executeSql('REPLACE INTO monitor (url, title, topAd, timeStamp) VALUES(?,?,?,?)', [g.url, g.title, g.topAd, new Date().getTime()], null, onDbError);
                     }
                 }
-                d(o)
-            }, onDbError)
+                d(o);
+            }, onDbError);
         });
         break;
-    case "setMonitor":
-        db.transaction(function (e) {
+    case 'setMonitor':
+        db.transaction(function(e) {
             var n = new Date().getTime();
             var m = g.frequency * g.timeUnit + n;
-            e.executeSql("REPLACE INTO monitor (url, topAd, active, title, frequency, time_unit, check_at, last_checked, timeStamp) VALUES(?,?,?,?,?,?,?,?,?)", [g.url, g.topAd, g.active, g.title, g.frequency, g.timeUnit, m, n, n], function () {
-                setupMonitor()
-            }, onDbError)
+            e.executeSql('REPLACE INTO monitor (url, topAd, active, title, frequency, time_unit, check_at, last_checked, timeStamp) VALUES(?,?,?,?,?,?,?,?,?)', [g.url, g.topAd, g.active, g.title, g.frequency, g.timeUnit, m, n, n], function() {
+                setupMonitor();
+            }, onDbError);
         });
         d();
         break;
-    case "deactivateMonitor":
-        db.transaction(function (e) {
-            e.executeSql("UPDATE monitor SET active = 0 WHERE url = ?", [g.url], function () {
-                setupMonitor()
-            }, onDbError)
+    case 'deactivateMonitor':
+        db.transaction(function(e) {
+            e.executeSql('UPDATE monitor SET active = 0 WHERE url = ?', [g.url], function() {
+                setupMonitor();
+            }, onDbError);
         });
         d();
         break;
-    case "getMonitors":
-        db.readTransaction(function (e) {
-            e.executeSql("SELECT url, title, frequency, time_unit FROM monitor WHERE active > 0 ORDER BY title ASC", null, function (n, o) {
+    case 'getMonitors':
+        db.readTransaction(function(e) {
+            e.executeSql('SELECT url, title, frequency, time_unit FROM monitor WHERE active > 0 ORDER BY title ASC', null, function(n, o) {
                 if (o.rows.length) {
                     var p = new Array();
                     var m = o.rows.length;
                     for (i = 0; i < m; i++) {
-                        p.push(o.rows.item(i))
+                        p.push(o.rows.item(i));
                     }
-                    d(p)
+                    d(p);
                 } else {
-                    d()
+                    d();
                 }
-            }, onDbError)
+            }, onDbError);
         });
         break;
-    case "checkMonitors":
+    case 'checkMonitors':
         checkMonitors(true);
         break;
-    case "getSearches":
-        db.readTransaction(function (e) {
-            e.executeSql("SELECT url, active, title, timeStamp FROM monitor ORDER BY timeStamp DESC LIMIT 100", null, function (n, o) {
+    case 'getSearches':
+        db.readTransaction(function(e) {
+            e.executeSql('SELECT url, active, title, timeStamp FROM monitor ORDER BY timeStamp DESC LIMIT 100', null, function(n, o) {
                 if (o.rows.length) {
                     var p = new Array();
                     var m = o.rows.length;
                     for (i = 0; i < m; i++) {
-                        p.push(o.rows.item(i))
+                        p.push(o.rows.item(i));
                     }
-                    d(p)
+                    d(p);
                 } else {
-                    d()
+                    d();
                 }
-            }, onDbError)
+            }, onDbError);
         });
         break;
-    case "removeSearchItem":
+    case 'removeSearchItem':
         if (g.url) {
-            db.transaction(function (e) {
-                e.executeSql("DELETE FROM monitor WHERE url = ?", [g.url], null, onDbError)
-            })
+            db.transaction(function(e) {
+                e.executeSql('DELETE FROM monitor WHERE url = ?', [g.url], null, onDbError);
+            });
         }
         break;
-    case "getAlerts":
+    case 'getAlerts':
         d(newAlerts);
         newAlerts = new Array();
         break;
-    case "closeNotification":
+    case 'closeNotification':
         notification.cancel();
         d();
         break;
-    case "getOptions":
+    case 'getOptions':
         d(options);
         break;
-    case "getNearbySites":
+    case 'getNearbySites':
         var b = g.url.match(/http:\/\/[^\/]+\//)[0];
-        b.replace(".en.craigslist", ".craigslist").replace(".es.craigslist", ".craigslist");
+        b.replace('.en.craigslist', '.craigslist').replace('.es.craigslist', '.craigslist');
         if (b == userSite.url && !g.radius) {
             d(sitesNearUser.slice(0));
-            break
+            break;
         }
         var j = g.radius ? g.radius : nearSitesRadius;
         if (b == userSite.url) {
-            getSitesNear(userSite.lat, userSite.lon, j, function (e) {
-                d(e)
-            })
+            getSitesNear(userSite.lat, userSite.lon, j, function(e) {
+                d(e);
+            });
         } else {
-            getSiteLocation(b, function (e) {
-                getSitesNear(e.lat, e.lon, j, function (m) {
-                    d(m)
-                })
-            })
+            getSiteLocation(b, function(e) {
+                getSitesNear(e.lat, e.lon, j, function(m) {
+                    d(m);
+                });
+            });
         }
         break;
-    case "getStateSites":
+    case 'getStateSites':
         var b = g.url.match(/http:\/\/[^\/]+\//)[0];
-        b.replace(".en.craigslist", ".craigslist").replace(".es.craigslist", ".craigslist");
-        getSiteLocation(b, function (e) {
-            db.readTransaction(function (m) {
-                m.executeSql("SELECT * FROM clsites WHERE state = ?", [e.state], function (o, p) {
+        b.replace('.en.craigslist', '.craigslist').replace('.es.craigslist', '.craigslist');
+        getSiteLocation(b, function(e) {
+            db.readTransaction(function(m) {
+                m.executeSql('SELECT * FROM clsites WHERE state = ?', [e.state], function(o, p) {
                     var s = [];
                     var n = p.rows.length;
                     if (n) {
                         for (var r = 0; r < n; r++) {
                             var q = p.rows.item(r);
-                            s.push(q)
+                            s.push(q);
                         }
-                        d(s)
+                        d(s);
                     }
-                }, onDbError)
-            })
+                }, onDbError);
+            });
         });
         break;
-    case "getUrl":
+    case 'getUrl':
         try {
             $.ajax({
                 url: g.url,
-                success: function (e) {
-                    d(e)
+                success: function(e) {
+                    d(e);
                 },
-                error: function () {
-                    d(null)
+                error: function() {
+                    d(null);
                 }
-            })
+            });
         } catch (l) {
-            console.log("Caught an exception on getUrl");
-            d(null)
+            console.log('Caught an exception on getUrl');
+            d(null);
         }
         break;
-    case "optionsUpdated":
+    case 'optionsUpdated':
         options = JSON.parse(localStorage.options);
         options.abPresent = abPresent;
         break;
-    case "saveOptions":
+    case 'saveOptions':
         options = g.options;
         localStorage.options = JSON.stringify(options);
         break;
-    case "saveLocalStorage":
+    case 'saveLocalStorage':
         localStorage[g.key] = JSON.stringify(g.data);
         break;
-    case "getLocalStorage":
+    case 'getLocalStorage':
         if (localStorage[g.key]) {
-            d(JSON.parse(localStorage[g.key]))
+            d(JSON.parse(localStorage[g.key]));
         }
         break;
-    case "openOptionsTab":
+    case 'openOptionsTab':
         if (zSafari) {
             var f = safari.application.activeBrowserWindow.openTab();
-            f.url = extPath + "options.html"
+            f.url = extPath + 'options.html';
         } else {
             chrome.tabs.create({
-                url: extPath + "options.html"
-            })
+                url: extPath + 'options.html'
+            });
         }
         break;
-    case "sendMail":
+    case 'sendMail':
         sendHotmail(g, d);
         return;
-        var k = "https://mail.google.com/mail/h/" + Math.random() + "/";
-        var c = k + "?v=b&pv=tl&cs=b";
+        var k = 'https://mail.google.com/mail/h/' + Math.random() + '/';
+        var c = k + '?v=b&pv=tl&cs=b';
         $.ajax({
             url: c,
-            success: function (m) {
+            success: function(m) {
                 if (m.indexOf('<form id="gaia_loginform"') > 0) {
                     d({
-                        status: "Not logged in. Please log into your webmail provider and try again."
+                        status: 'Not logged in. Please log into your webmail provider and try again.'
                     });
-                    return
+                    return;
                 }
                 console.log(m);
                 var e = m.match(/<form action="\?(v=b&fv=[^\"]+)/);
                 if (e.length == 0) {
                     d({
-                        status: "Unknown Problem"
+                        status: 'Unknown Problem'
                     });
-                    return
+                    return;
                 }
                 $.ajax({
-                    url: k + "?" + e[1],
-                    type: "POST",
+                    url: k + '?' + e[1],
+                    type: 'POST',
                     data: {
-                        redir: "?",
-                        nvp_bu_send: "Send",
-                        to: "ziinkaddon@gmail.com",
+                        redir: '?',
+                        nvp_bu_send: 'Send',
+                        to: 'ziinkaddon@gmail.com',
                         subject: g.subject,
                         body: g.body
                     },
-                    success: function (n) {
+                    success: function(n) {
                         console.log(n);
                         d({
-                            status: "Success"
-                        })
+                            status: 'Success'
+                        });
                     },
-                    error: function () {
+                    error: function() {
                         d({
-                            status: "Network Problem"
-                        })
+                            status: 'Network Problem'
+                        });
                     }
-                })
+                });
             },
-            error: function () {
+            error: function() {
                 d({
-                    status: "Network Problem"
-                })
+                    status: 'Network Problem'
+                });
             }
         });
         break;
-    case "openMailTab":
+    case 'openMailTab':
         chrome.tabs.create({
             url: g.url
         });
         break;
-    case "test":
+    case 'test':
         console.log(g.msg);
         d();
         break;
     default:
         d();
-        break
+        break;
     }
 }
 function sendYahooMail(c, a) {
-    var b = "http://us.mg1.mail.yahoo.com/mc/";
-    var d = b + "compose?&ymv=0&.rand=" + Math.random();
+    var b = 'http://us.mg1.mail.yahoo.com/mc/';
+    var d = b + 'compose?&ymv=0&.rand=' + Math.random();
     $.ajax({
         url: d,
-        success: function (j) {
+        success: function(j) {
             if (j.indexOf('action="https://login.yahoo.com/config/login?"') > 0) {
                 a({
-                    status: "Not logged in. Please log into Yahoo! Mail and try again."
+                    status: 'Not logged in. Please log into Yahoo! Mail and try again.'
                 });
-                return
+                return;
             }
             var e = j.match(/value="([^"]+)" name="mcrumb/);
             if (e.length == 0) {
                 a({
-                    status: "Unknown Problem"
+                    status: 'Unknown Problem'
                 });
-                return
+                return;
             }
             var f = e[1];
             e = j.match(/value="({&quot;[^"]+)" name="fromAddresses/);
@@ -832,132 +832,132 @@ function sendYahooMail(c, a) {
             var k = b + e[1];
             $.ajax({
                 url: k,
-                type: "POST",
+                type: 'POST',
                 data: {
-                    cmd: "mask",
-                    jsonEmails: "",
-                    attachment: "",
-                    msgFlag: "compose",
-                    startMid: "",
-                    sMid: "0",
-                    psize: "",
-                    nextMid: "",
-                    prevMid: "",
-                    fid: "Inbox",
-                    mid: "",
-                    oFid: "",
-                    oMid: "",
-                    sort: "",
-                    filterBy: "",
-                    order: "",
-                    msgID: "",
-                    ymcjs: "0",
-                    signatureAdded: "1",
-                    sUseRichText: "plain",
-                    sReplyToAddress: "",
+                    cmd: 'mask',
+                    jsonEmails: '',
+                    attachment: '',
+                    msgFlag: 'compose',
+                    startMid: '',
+                    sMid: '0',
+                    psize: '',
+                    nextMid: '',
+                    prevMid: '',
+                    fid: 'Inbox',
+                    mid: '',
+                    oFid: '',
+                    oMid: '',
+                    sort: '',
+                    filterBy: '',
+                    order: '',
+                    msgID: '',
+                    ymcjs: '0',
+                    signatureAdded: '1',
+                    sUseRichText: 'plain',
+                    sReplyToAddress: '',
                     mcrumb: f,
-                    embstyle: "",
-                    st_desc: "",
-                    showBcc: "false",
+                    embstyle: '',
+                    st_desc: '',
+                    showBcc: 'false',
                     fromAddresses: g.replace(/&quot;/g, '"'),
                     defFromAddress: h,
-                    to: "ziinkaddon@gmail.com",
-                    cc: "",
-                    bcc: "",
+                    to: 'ziinkaddon@gmail.com',
+                    cc: '',
+                    bcc: '',
                     Subj: c.subject,
-                    toggleRTE: "1",
+                    toggleRTE: '1',
                     Content: c.body,
-                    action_msg_send: "Send"
+                    action_msg_send: 'Send'
                 },
-                success: function (l) {
+                success: function(l) {
                     console.log(l);
                     a({
-                        status: "Success"
-                    })
+                        status: 'Success'
+                    });
                 },
-                error: function () {
+                error: function() {
                     a({
-                        status: "Network Problem"
-                    })
+                        status: 'Network Problem'
+                    });
                 }
-            })
+            });
         },
-        error: function () {
+        error: function() {
             a({
-                status: "Network Problem"
-            })
+                status: 'Network Problem'
+            });
         }
-    })
+    });
 }
 function sendHotmail(d, a) {
     function b() {
         a({
-            status: "Network Problem"
-        })
+            status: 'Network Problem'
+        });
     }
     function f(l) {
         var j = l.match(/rurl:"([^"]+)/);
         if (j.length == 0) {
             a({
-                status: "Unknown Problem"
-            })
+                status: 'Unknown Problem'
+            });
         } else {
             var k = j[1];
-            h = k.replace("ext", "_ec");
+            h = k.replace('ext', '_ec');
             $.ajax({
                 url: k,
                 success: g,
                 error: b
-            })
+            });
         }
     }
     function g(m) {
         var l = m.match(/&mt=([^"]{80,})/);
         if (l.length == 0) {
             a({
-                status: "Unknown Problem"
+                status: 'Unknown Problem'
             });
-            return
+            return;
         }
         var j = unescape(l[1]);
-        var k = m.match(/"fFrom" value="([^"]+)/)[1].replace("&#64;", "@");
+        var k = m.match(/"fFrom" value="([^"]+)/)[1].replace('&#64;', '@');
         $.ajax({
             url: h,
-            type: "POST",
+            type: 'POST',
             data: {
-                __VIEWSTATE: "",
+                __VIEWSTATE: '',
                 mt: j,
-                MsgPriority: "0",
-                ToolbarActionItem: "SendMessage",
-                folderCache: "00000000-0000-0000-0000-000000000001/1/Inbox/1:00000000-0000-0000-0000-000000000005/0/Junk/1:00000000-0000-0000-0000-000000000004/1/Drafts/1:00000000-0000-0000-0000-000000000003/0/Sent/1:00000000-0000-0000-0000-000000000002/0/Deleted/1",
-                categoriesCache: "3/0:4/0:7/0:9/0",
-                SkyDriveLibrary: "",
-                fMsgSentState: "NOACTION",
-                IsSpellChecked: "false",
+                MsgPriority: '0',
+                ToolbarActionItem: 'SendMessage',
+                folderCache: '00000000-0000-0000-0000-000000000001/1/Inbox/1:00000000-0000-0000-0000-000000000005/0/Junk/1:00000000-0000-0000-0000-000000000004/1/Drafts/1:00000000-0000-0000-0000-000000000003/0/Sent/1:00000000-0000-0000-0000-000000000002/0/Deleted/1',
+                categoriesCache: '3/0:4/0:7/0:9/0',
+                SkyDriveLibrary: '',
+                fMsgSentState: 'NOACTION',
+                IsSpellChecked: 'false',
                 fFrom: k,
-                cpselectedAutoCompleteTo: "[;;ziinkaddon%26%2364%3Bgmail.com;false;false;0]",
+                cpselectedAutoCompleteTo: '[;;ziinkaddon%26%2364%3Bgmail.com;false;false;0]',
                 fTo: '"" <ziinkaddon@gmail.com>;',
-                cpselectedAutoCompleteCc: "",
-                fCc: "",
-                cpselectedAutoCompleteBcc: "",
-                fBcc: "",
+                cpselectedAutoCompleteCc: '',
+                fCc: '',
+                cpselectedAutoCompleteBcc: '',
+                fBcc: '',
                 fSubject: d.subject,
-                fAttachments_data: "",
-                isFirstPL: "",
-                RTE_MessageType: "RichText",
-                fMessageBody: d.body,
+                fAttachments_data: '',
+                isFirstPL: '',
+                RTE_MessageType: 'RichText',
+                fMessageBody: d.body
             },
-            success: function (n) {
+            success: function(n) {
                 console.log(n);
                 a({
-                    status: "Success"
-                })
+                    status: 'Success'
+                });
             },
             error: b
-        })
+        });
     }
-    var c = "http://mail.live.com/default.aspx?rru=compose";
-    var h = "";
+    var c = 'http://mail.live.com/default.aspx?rru=compose';
+    var h = '';
     $.ajax({
         url: c,
         success: f,
@@ -967,19 +967,19 @@ function sendHotmail(d, a) {
     var e = c;
     $.ajax({
         url: e,
-        success: function (n) {
+        success: function(n) {
             if (n.indexOf('action="https://login.yahoo.com/config/login?"') > 0) {
                 a({
-                    status: "Not logged in. Please log into Yahoo! Mail and try again."
+                    status: 'Not logged in. Please log into Yahoo! Mail and try again.'
                 });
-                return
+                return;
             }
             var j = n.match(/value="([^"]+)" name="mcrumb/);
             if (j.length == 0) {
                 a({
-                    status: "Unknown Problem"
+                    status: 'Unknown Problem'
                 });
-                return
+                return;
             }
             var k = j[1];
             j = n.match(/value="({&quot;[^"]+)" name="fromAddresses/);
@@ -990,82 +990,82 @@ function sendHotmail(d, a) {
             var o = c + j[1];
             $.ajax({
                 url: o,
-                type: "POST",
+                type: 'POST',
                 data: {
-                    cmd: "mask",
-                    jsonEmails: "",
-                    attachment: "",
-                    msgFlag: "compose",
-                    startMid: "",
-                    sMid: "0",
-                    psize: "",
-                    nextMid: "",
-                    prevMid: "",
-                    fid: "Inbox",
-                    mid: "",
-                    oFid: "",
-                    oMid: "",
-                    sort: "",
-                    filterBy: "",
-                    order: "",
-                    msgID: "",
-                    ymcjs: "0",
-                    signatureAdded: "1",
-                    sUseRichText: "plain",
-                    sReplyToAddress: "",
+                    cmd: 'mask',
+                    jsonEmails: '',
+                    attachment: '',
+                    msgFlag: 'compose',
+                    startMid: '',
+                    sMid: '0',
+                    psize: '',
+                    nextMid: '',
+                    prevMid: '',
+                    fid: 'Inbox',
+                    mid: '',
+                    oFid: '',
+                    oMid: '',
+                    sort: '',
+                    filterBy: '',
+                    order: '',
+                    msgID: '',
+                    ymcjs: '0',
+                    signatureAdded: '1',
+                    sUseRichText: 'plain',
+                    sReplyToAddress: '',
                     mcrumb: k,
-                    embstyle: "",
-                    st_desc: "",
-                    showBcc: "false",
+                    embstyle: '',
+                    st_desc: '',
+                    showBcc: 'false',
                     fromAddresses: l.replace(/&quot;/g, '"'),
                     defFromAddress: m,
-                    to: "ziinkaddon@gmail.com",
-                    cc: "",
-                    bcc: "",
+                    to: 'ziinkaddon@gmail.com',
+                    cc: '',
+                    bcc: '',
                     Subj: d.subject,
-                    toggleRTE: "1",
+                    toggleRTE: '1',
                     Content: d.body,
-                    action_msg_send: "Send"
+                    action_msg_send: 'Send'
                 },
-                success: function (p) {
+                success: function(p) {
                     console.log(p);
                     a({
-                        status: "Success"
-                    })
+                        status: 'Success'
+                    });
                 },
-                error: function () {
+                error: function() {
                     a({
-                        status: "Network Problem"
-                    })
+                        status: 'Network Problem'
+                    });
                 }
-            })
+            });
         },
-        error: function () {
+        error: function() {
             a({
-                status: "Network Problem"
-            })
+                status: 'Network Problem'
+            });
         }
-    })
+    });
 }
 function log(a) {
     if (debug) {
-        console.log(a)
+        console.log(a);
     }
 }
 if (zSafari) {
-    safari.application.addEventListener("command", commandListener, false);
+    safari.application.addEventListener('command', commandListener, false);
 
     function commandListener(b) {
-        if (b.command === "tbbClHelper") {
+        if (b.command === 'tbbClHelper') {
             var a = safari.application.activeBrowserWindow.openTab();
-            a.url = extPath + "options.html"
+            a.url = extPath + 'options.html';
         } else {
-            if (b.command === "zIgnorePhrase") {
-                var c = b.userInfo.ziinkSel.replace(/\s+$/, "");
+            if (b.command === 'zIgnorePhrase') {
+                var c = b.userInfo.ziinkSel.replace(/\s+$/, '');
                 ignorePhrase({
                     selectionText: c
-                })
+                });
             }
         }
     }
-};
+}

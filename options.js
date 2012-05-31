@@ -4,50 +4,50 @@ options = JSON.parse(localStorage.options);
 function saveOptions() {
     var a = new Object();
     a.smartMode = options.smartMode;
-    $("input:checkbox").each(function () {
-        a[this.name] = this.checked
+    $('input:checkbox').each(function() {
+        a[this.name] = this.checked;
     });
-    $("input:text").each(function () {
-        a[this.name] = this.value
+    $('input:text').each(function() {
+        a[this.name] = this.value;
     });
-    a.emailProvider = $("input[name=email]:checked").val() || "unset";
+    a.emailProvider = $('input[name=email]:checked').val() || 'unset';
     localStorage.options = JSON.stringify(a);
-    if (typeof safari !== "undefined") {
-        safari.self.tab.dispatchMessage("ziinkcl", {
-            op: "optionsUpdated"
-        })
+    if (typeof safari !== 'undefined') {
+        safari.self.tab.dispatchMessage('ziinkcl', {
+            op: 'optionsUpdated'
+        });
     }
-    $("#saveMsg").text("Options Saved");
-    window.setTimeout(function () {
-        jQuery("#saveMsg").text("")
-    }, 2000)
+    $('#saveMsg').text('Options Saved');
+    window.setTimeout(function() {
+        jQuery('#saveMsg').text('');
+    }, 2000);
 }
-$(document).ready(function () {
+$(document).ready(function() {
     var a = 0;
-    $("label").each(function () {
+    $('label').each(function() {
         if ($(this).width() > a) {
-            a = $(this).width()
+            a = $(this).width();
         }
     });
-    $("label").width(a);
+    $('label').width(a);
     for (var b in options) {
-        if (typeof options[b] === "boolean") {
-            $("input#" + b).attr("checked", options[b])
+        if (typeof options[b] === 'boolean') {
+            $('input#' + b).attr('checked', options[b]);
         } else {
-            $("input#" + b).val(options[b])
+            $('input#' + b).val(options[b]);
         }
     }
-    $('input:radio[value="' + options.emailProvider + '"]').attr("checked", true);
-    jQuery.validator.addMethod("hex", function (d, c) {
-        return this.optional(c) || /^[0-9A-F]+$/i.test(d)
-    }, "Hexadecimal value only");
-    jQuery.validator.addMethod("greaterThan", function (d, c, f) {
-        var e = $(f).unbind(".validate-greaterThan").bind("blur.validate-greaterThan", function () {
-            $(c).valid()
+    $('input:radio[value="' + options.emailProvider + '"]').attr('checked', true);
+    jQuery.validator.addMethod('hex', function(d, c) {
+        return this.optional(c) || /^[0-9A-F]+$/i.test(d);
+    }, 'Hexadecimal value only');
+    jQuery.validator.addMethod('greaterThan', function(d, c, f) {
+        var e = $(f).unbind('.validate-greaterThan').bind('blur.validate-greaterThan', function() {
+            $(c).valid();
         });
-        return d > e.val()
-    }, "Maximum value should be greater than the minimum value specified.");
-    $("#optionsForm").validate({
+        return d > e.val();
+    }, 'Maximum value should be greater than the minimum value specified.');
+    $('#optionsForm').validate({
         rules: {
             hideNotificationTime: {
                 required: true,
@@ -85,13 +85,13 @@ $(document).ready(function () {
                 required: true,
                 number: true,
                 range: [300, 800],
-                greaterThan: "#imgMinWidth"
+                greaterThan: '#imgMinWidth'
             },
             imgMaxHeight: {
                 required: true,
                 number: true,
                 range: [300, 800],
-                greaterThan: "#imgMinHeight"
+                greaterThan: '#imgMinHeight'
             },
             adWidth: {
                 required: true,
@@ -121,5 +121,5 @@ $(document).ready(function () {
                 range: [600, 1920]
             }
         }
-    })
+    });
 });
