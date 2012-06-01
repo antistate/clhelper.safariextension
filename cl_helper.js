@@ -28,7 +28,7 @@ function init() {
 
 function init2() {
 	try {
-		loadJsFile(extPath + 'gan.js');
+		// loadJsFile(extPath + 'gan.js');
 		if (location.href.search(/\/forums\/\?/) > 0) {
 			inForum();
 		} else {
