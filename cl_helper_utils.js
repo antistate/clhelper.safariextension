@@ -448,7 +448,7 @@ function previewFromCache(e) {
 
 function getPreviewGad(e, b, d) {
 	var c = encodeURIComponent(e.textContent).replace(/%20/g, '+');
-	var a = '<div class="gad" style="width: 736px; height: 98px; overflow: hidden; margin-left: -10px;"><iframe src= height="910px" width="800px" frameborder="0" scrolling="no"></iframe></div>';
+	var a = '<div class="gad" style="width: 736px; height: 98px; overflow: hidden; margin-left: -10px;"><iframe src="" height="910px" width="800px" frameborder="0" scrolling="no"></iframe></div>';
 	return a;
 }
 
