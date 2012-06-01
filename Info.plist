@@ -42,14 +42,17 @@
 		<dict>
 			<key>End</key>
 			<array>
-				<string>jquery/jquery-1.5.min.js</string>
-				<string>jquery/jquery-ui-1.8.9.custom.min.js</string>
-				<string>jquery/jquery.hoverIntent.min.js</string>
-				<string>jquery/jquery.jeditable.min.js</string>
-				<string>jquery/jquery.appear-1.1.1.js</string>
 				<string>cl_helper_utils.js</string>
 				<string>forum.js</string>
 				<string>cl_helper.js</string>
+			</array>
+			<key>Start</key>
+			<array>
+				<string>jquery/jquery-1.5.min.js</string>
+				<string>jquery/jquery-ui-1.8.9.custom.min.js</string>
+				<string>jquery/jquery.jeditable.min.js</string>
+				<string>jquery/jquery.hoverIntent.min.js</string>
+				<string>jquery/jquery.appear-1.1.1.js</string>
 			</array>
 		</dict>
 		<key>Stylesheets</key>
